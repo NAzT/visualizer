@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Barcode Chart</title>
+<style>
+	body {
+		text-align: center;
+	}
+
+	svg {
+		margin: 76px auto;
+	}
+</style>
+<body>
+<div class="micro-content">
+	<div class="g-chart"></div>
+</div>
+</body>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+  var chartWidth = 1000,
+    chartHeight = 24,
+    barWidth = 2, // chartWidth / 100;
+    barColor = "rgba(0, 0, 0, 0.1)";
+
+  var highlightBarWidth = 3,
+    highlightBarHeight = 28;
+  highlightBarColor = "rgba(0, 161, 230, 1.0)";
+
+  var chartScale = d3.scaleLinear()
+    .domain([0, 24])
+    .range([0, chartWidth]);
+
+  d3.json("data.json", function(data) {
+    data.data = [];
+    //d = data.data
+    for (let i = 0; i <= 24; i++) {
+      data.data.push({ percent: i });
+      //for (let j = 0; j < 60; j++) {
+      //  data.data.push({ percent: i+j/60});
+      //}
+    }
+    //
+    //for (let i = 1; i <= 10000; i++) {
+    //  data.data.push({ percent: i/1000 });
+    //}
+    //for (let i = 1000; i < 2000; i++) {
+    //  data.data.push({ percent: i/100 });
+    //}
+    //for (let i = 9000; i < 1000; i++) {
+    //  data.data.push({ percent: i/100 });
+    //}
+    drawChart(data.data);
+  });
+  var yScale = d3.scaleLinear()
+    .range([chartHeight, 0]);
+
+  function drawChart(data) {
+    var svg = d3.select(".g-chart")
+      .append("svg")
+      .attr("width", chartWidth)
+      .attr("height", chartHeight * 2);
+
+    var div = d3.select(".g-chart").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
+    xAxisGroup = svg.append("g")
+      .attr("transform", "translate(0, " + chartHeight / 2 + ")");
+
+    xAxisGroup.append("rect")
+      .attr("width", chartWidth)
+      .attr("height", chartHeight)
+      .style("fill", "#eee");
+    yScale.domain([0, 100]);
+    xAxisGroup.selectAll("rect")
+      .data(data)
+      .enter()
+      .append("rect")
+      .attr("y1", 50)
+      .attr("y2", 100)
+      .attr("width", barWidth)
+      .attr("height", chartHeight)
+      .style("fill", barColor)
+      .attr("x", (d, i) => { return Math.floor(chartScale(d.percent)); })
+      .on("mouseover", function(d) {
+        var right = d3.event.pageX > window.innerWidth / 2;
+
+        d3.select(this)
+          .transition().duration(100)
+          .attr("y1", 0)
+          .style("stroke-width", 3)
+          .style("opacity", 1);
+
+        div.transition(300)
+          .style("opacity", 1);
+        console.log(d);
+        //div.html("<span class='bolded'>" + d.percent + ": </span>" + d.percent + "%");
+        div.html("<span class='bolded'>" + d.percent + "</span>");
+
+        var offset = right
+          ? div.node().offsetWidth + 5
+          : -5;
+
+        div
+          .style("left", (d3.event.pageX - offset) + "px")
+          .style("top", (chartHeight - 80) + "px");
+      })
+      .on("mouseout", function(d) {
+        d3.select(this)
+          .transition().duration(100)
+          .attr("y1", 50)
+          .style("stroke-width", 2)
+          .style("opacity", 0.4);
+
+        div.transition(300)
+          .style("opacity", 0);
+      });
+    //.on("mouseenter", function(d, i) {
+    //d3.select(this)
+    //  .transition().duration(100)
+    //  .attr("y1", 0)
+    //  .style("stroke-width", 3)
+    //  .style("opacity", 1);
+    //var highlightBar = xAxisGroup.append("rect")
+    //  .attr("width", highlightBarWidth)
+    //  .attr("height", highlightBarHeight)
+    //  .attr("transform", "translate(0, " + "-" + (highlightBarHeight - chartHeight) / 2 + ")")
+    //  .style("fill", highlightBarColor)
+    //  .attr("x", function() {
+    //    console.log(Math.floor(chartScale(d.percent)));
+    //    return Math.floor(chartScale(d.percent));
+    //  });
+    //setTimeout(function() { highlightBar.remove(); }, 700);
+
+    //});
+  }
+</script>
